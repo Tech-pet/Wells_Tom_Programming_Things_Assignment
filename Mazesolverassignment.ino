@@ -17,9 +17,17 @@
 #define REVERSE_DURATION  200 // ms
 #define TURN_DURATION     300 // ms
  
-ZumoBuzzer buzzer;
+ 
+ #include <NewPing.h>
+
+#define TRIGGER_PIN  4  // Arduino pin tied to trigger pin on the ultrasonic sensor.
+#define ECHO_PIN     5  // Arduino pin tied to echo pin on the ultrasonic sensor.
+#define MAX_DISTANCE 200 // Maximum distance we want to ping for (in centimeters). Maximum sensor distance is rated at 400-500cm.
+
+NewPing sonar(TRIGGER_PIN, ECHO_PIN, MAX_DISTANCE); // NewPing setup of pins and maximum distance.
+
+ 
 ZumoMotors motors;
-Pushbutton button(ZUMO_BUTTON); // pushbutton on pin 12
  
 #define NUM_SENSORS 6
 unsigned int sensor_values[NUM_SENSORS];
@@ -46,7 +54,7 @@ void loop()
 
    if (Serial.available() > 0) {
     
-    //Serial.write("TESTTESTHELP");
+    
     // read the oldest byte in the serial buffer:
     incomingByte = Serial.read();
 
@@ -105,7 +113,15 @@ void loop()
     if (InCorner == 0)
     {
 
-  if (sensor_values[1] > p_QTR_THRESHOLD || sensor_values[2] > p_QTR_THRESHOLD || sensor_values[3] > p_QTR_THRESHOLD || sensor_values[4] > p_QTR_THRESHOLD)
+      
+    if (sonar.ping_cm() < 20)
+    {
+     motors.setSpeeds(0,0);
+    Serial.println("Object Detected, Once Object has moved please set Zumo in Motion using C key"); 
+    InCorner = 1;
+    }
+      
+  if (sensor_values[1] > p_QTR_THRESHOLD || sensor_values[2] > p_QTR_THRESHOLD || sensor_values[3] > p_QTR_THRESHOLD || sensor_values[3] > p_QTR_THRESHOLD)
   {
      motors.setSpeeds(-REVERSE_SPEED, -REVERSE_SPEED);
     delay(REVERSE_DURATION);
@@ -124,16 +140,9 @@ void loop()
     motors.setSpeeds(TURN_SPEED, -TURN_SPEED);
     delay(TURN_DURATION);
     motors.setSpeeds(FORWARD_SPEED, FORWARD_SPEED);
-    Serial.print ("Left");
-    Serial.println(sensor_values[0]);
-    Serial.println(sensor_values[1]);
-    Serial.println(sensor_values[2]);
-    Serial.println(sensor_values[3]);
-    Serial.println(sensor_values[4]);
-    Serial.println(sensor_values[5]);
-    Serial.println("end");
+
   }
-  else if (sensor_values[5] > QTR_THRESHOLD) 
+  else if (sensor_values[4] > QTR_THRESHOLD) 
   {
     // if rightmost sensor detects line, reverse and turn to the left
     motors.setSpeeds(-REVERSE_SPEED, -REVERSE_SPEED);
@@ -142,14 +151,7 @@ void loop()
     delay(TURN_DURATION);
     motors.setSpeeds(FORWARD_SPEED, FORWARD_SPEED);
     
-     Serial.print ("Left");
-     Serial.println(sensor_values[0]);
-    Serial.println(sensor_values[1]);
-    Serial.println(sensor_values[2]);
-    Serial.println(sensor_values[3]);
-    Serial.println(sensor_values[4]);
-    Serial.println(sensor_values[5]);
-    Serial.println("end");
+
   } }
 
 }
